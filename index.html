@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=720px, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Waterjug AI Simulator</title>
+    <style>
+        .text-center {
+            text-align: center;
+        }
+        /* table > tbody > tr > td:first-child {
+            width: 25%;
+        }
+        table > tbody > tr > td:first-child {
+            width: 25%;
+        } */
+        
+        input {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <table width="15%">
+        <thead class="text-center">
+            <tr>
+                <td colspan="3">Waterjug Ember 5L & Ember 3L</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Nilai X</td>
+                <td>:</td>
+                <td><input type="text" value="2" name="x-value"></td>
+            </tr>
+            <tr>
+                <td>Nilai Y</td>
+                <td>:</td>
+                <td><input type="text" value="0" name="y-value"></td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="15%">
+        <tbody>
+            <tr class="text-center">
+                <td><button type="button" id="reset-btn">Reset</button></td>
+                <td><button type="button" id="submit-btn">Submit</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <table width="15%" id="result-table" style="border-collapse: collapse; margin-top: 8px;" border="1px">
+    </table>
+</body>
+<script src="./jquery.min.js"></script>
+<script>
+    const xCapacity = 5
+    const yCapacity = 3
+    const rulesAndProcess = [{
+        rules: (x, y) => {
+            return x > 0 && x + y >= xCapacity
+        },
+        process: (x, y) => {
+            return [x - (yCapacity - y), yCapacity]
+        },
+        eventType: 'x',
+        rulesNumber: 7
+    }, {
+        rules: (x, y) => {
+            return x > 0 && x + y <= yCapacity
+        },
+        process: (x, y) => {
+            return [0, x + y]
+        },
+        eventType: 'x',
+        rulesNumber: 5
+    }, {
+        rules: (x, y) => {
+            return x < xCapacity
+        },
+        process: (x, y) => {
+            return [xCapacity, y]
+        },
+        eventType: 'x',
+        rulesNumber: 1
+    }, {
+        rules: (x, y) => {
+            return x > 0
+        },
+        process: (x, y) => {
+            return [0, y]
+        },
+        eventType: 'x',
+        rulesNumber: 3
+    }, {
+        rules: (x, y) => {
+            return y > 0 && x + y >= yCapacity
+        },
+        process: (x, y) => {
+            return [xCapacity, yCapacity - (xCapacity - x)]
+        },
+        eventType: 'y',
+        rulesNumber: 8
+    }, {
+        rules: (x, y) => {
+            return y > 0 && x + y <= xCapacity
+        },
+        process: (x, y) => {
+            return [x + y, 0]
+        },
+        eventType: 'y',
+        rulesNumber: 6
+    }, {
+        rules: (x, y) => {
+            return y < yCapacity
+        },
+        process: (x, y) => {
+            return [x, yCapacity]
+        },
+        eventType: 'y',
+        rulesNumber: 2
+    }, {
+        rules: (x, y) => {
+            return y > 0
+        },
+        process: (x, y) => {
+            return [x, 0]
+        },
+        eventType: 'y',
+        rulesNumber: 4
+    }]
+
+    $("#submit-btn").bind('click', () => {
+        const expectedX = $("input[name='x-value']").val()
+        const expectedY = $("input[name='y-value']").val()
+        if (expectedX != '' && expectedY != '') {
+            const expectedValue = [expectedX, expectedY]
+            let valueBucket = [0, 0]
+            let stepReproduce = []
+            let resultFound = false
+            let indexRules = 0
+            let matrixFound = []
+            let coba = 0
+            do {
+                if (rulesAndProcess[indexRules].rules(valueBucket[0], valueBucket[1])) {
+                    if (valueBucket[0] == expectedX && expectedY == 0) {
+                        // set 0 Y if expeted is Y and X is already done
+                        indexRules = 7
+                    }
+                    if (valueBucket[1] == expectedY && expectedX == 0) {
+                        // set 0 Y if expeted is Y and X is already done
+                        indexRules = 3
+                    }
+                    valueBucket = rulesAndProcess[indexRules].process(valueBucket[0], valueBucket[1])
+                    if (matrixFound.indexOf(valueBucket.join(',')) < 0) {
+                        stepReproduce.push(rulesAndProcess[indexRules].rulesNumber)
+                        matrixFound.push(valueBucket.join(','))
+                        if (valueBucket[0] == expectedX && valueBucket[1] == expectedY) {
+                            resultFound = true
+                            console.log("BERHASIL DAPAT REPRODUCE :", stepReproduce)
+                            console.log("EACH MATRIX DATA :", matrixFound)
+                        }
+                    }
+                    indexRules = 0
+                } else {
+                    indexRules += 1
+                }
+                if (coba == 100) {
+                    resultFound = true
+                    console.log("COBA LIMIT")
+                    console.log("matrixFound :", matrixFound)
+                }
+                coba += 1
+            } while (!resultFound);
+        }
+    })
+</script>
+
+</html>
